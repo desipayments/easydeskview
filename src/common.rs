@@ -62,6 +62,23 @@ pub const PLATFORM_ANDROID: &str = "Android";
 
 pub const TIMER_OUT: Duration = Duration::from_secs(1);
 pub const DEFAULT_KEEP_ALIVE: i32 = 60_000;
+const EASYDESK_DEFAULT_ID_SERVER: &str = "72.61.254.190";
+const EASYDESK_DEFAULT_RELAY_SERVER: &str = "72.61.254.190";
+const EASYDESK_DEFAULT_KEY: &str = "hLNQvRbHz4GSPLaeBv7z7Qr5gOk+dGmdzlbMwjj7reo=";
+
+fn apply_easydesk_default_servers() {
+    let defaults = [
+        ("custom-rendezvous-server", EASYDESK_DEFAULT_ID_SERVER),
+        ("relay-server", EASYDESK_DEFAULT_RELAY_SERVER),
+        ("key", EASYDESK_DEFAULT_KEY),
+    ];
+
+    for (k, v) in defaults {
+        if config::Config::get_option(k).trim().is_empty() {
+            config::Config::set_option(k.to_owned(), v.to_owned());
+        }
+    }
+}
 
 const MIN_VER_MULTI_UI_SESSION: &str = "1.2.4";
 
@@ -122,6 +139,9 @@ impl Drop for SimpleCallOnReturn {
 }
 
 pub fn global_init() -> bool {
+    *config::APP_NAME.write().unwrap() = "EasyDeskView".to_owned();
+    apply_easydesk_default_servers();
+
     #[cfg(target_os = "linux")]
     {
         if !crate::platform::linux::is_x11() {
