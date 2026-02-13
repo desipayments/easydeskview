@@ -32,4 +32,6 @@ package() {
   install -Dm 644 $HBB/res/rustdesk-link.desktop -t "${pkgdir}/usr/share/rustdesk/files"
   install -Dm 644 $HBB/res/128x128@2x.png "${pkgdir}/usr/share/icons/hicolor/256x256/apps/rustdesk.png"
   install -Dm 644 $HBB/res/scalable.svg "${pkgdir}/usr/share/icons/hicolor/scalable/apps/rustdesk.svg"
+  install -Dm 644 $HBB/res/128x128@2x.png "${pkgdir}/usr/share/icons/hicolor/256x256/apps/easydeskview.png"
+  install -Dm 644 $HBB/res/scalable.svg "${pkgdir}/usr/share/icons/hicolor/scalable/apps/easydeskview.svg"
 }

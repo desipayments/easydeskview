@@ -1,16 +1,16 @@
 [Desktop Entry]
-Name=RustDesk
+Name=EasyDeskView
 GenericName=Remote Desktop
 Comment=Remote Desktop
 Exec=rustdesk %u
-Icon=rustdesk
+Icon=easydeskview
 Terminal=false
 Type=Application
 StartupNotify=true
 Categories=Network;RemoteAccess;GTK;
 Keywords=internet;linux;dart;rust;remote-control;p2p;teamviewer;rust-lang;rdp;remote-desktop;vnc;
 Actions=new-window;
-StartupWMClass=rustdesk
+StartupWMClass=easydeskview
 
 X-Desktop-File-Install-Version=0.23
 

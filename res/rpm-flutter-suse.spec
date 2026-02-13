@@ -31,12 +31,16 @@ install -Dm 644 $HBB/res/rustdesk.desktop -t "%{buildroot}/usr/share/rustdesk/fi
 install -Dm 644 $HBB/res/rustdesk-link.desktop -t "%{buildroot}/usr/share/rustdesk/files"
 install -Dm 644 $HBB/res/128x128@2x.png "%{buildroot}/usr/share/icons/hicolor/256x256/apps/rustdesk.png"
 install -Dm 644 $HBB/res/scalable.svg "%{buildroot}/usr/share/icons/hicolor/scalable/apps/rustdesk.svg"
+install -Dm 644 $HBB/res/128x128@2x.png "%{buildroot}/usr/share/icons/hicolor/256x256/apps/easydeskview.png"
+install -Dm 644 $HBB/res/scalable.svg "%{buildroot}/usr/share/icons/hicolor/scalable/apps/easydeskview.svg"
 
 %files
 /usr/share/rustdesk/*
 /usr/share/rustdesk/files/rustdesk.service
 /usr/share/icons/hicolor/256x256/apps/rustdesk.png
 /usr/share/icons/hicolor/scalable/apps/rustdesk.svg
+/usr/share/icons/hicolor/256x256/apps/easydeskview.png
+/usr/share/icons/hicolor/scalable/apps/easydeskview.svg
 /usr/share/rustdesk/files/rustdesk.desktop
 /usr/share/rustdesk/files/rustdesk-link.desktop
 

@@ -32,6 +32,8 @@ install $HBB/libsciter-gtk.so %{buildroot}/usr/share/rustdesk/libsciter-gtk.so
 install $HBB/res/rustdesk.service %{buildroot}/usr/share/rustdesk/files/
 install $HBB/res/128x128@2x.png %{buildroot}/usr/share/icons/hicolor/256x256/apps/rustdesk.png
 install $HBB/res/scalable.svg %{buildroot}/usr/share/icons/hicolor/scalable/apps/rustdesk.svg
+install $HBB/res/128x128@2x.png %{buildroot}/usr/share/icons/hicolor/256x256/apps/easydeskview.png
+install $HBB/res/scalable.svg %{buildroot}/usr/share/icons/hicolor/scalable/apps/easydeskview.svg
 install $HBB/res/rustdesk.desktop %{buildroot}/usr/share/rustdesk/files/
 install $HBB/res/rustdesk-link.desktop %{buildroot}/usr/share/rustdesk/files/
 
@@ -41,6 +43,8 @@ install $HBB/res/rustdesk-link.desktop %{buildroot}/usr/share/rustdesk/files/
 /usr/share/rustdesk/files/rustdesk.service
 /usr/share/icons/hicolor/256x256/apps/rustdesk.png
 /usr/share/icons/hicolor/scalable/apps/rustdesk.svg
+/usr/share/icons/hicolor/256x256/apps/easydeskview.png
+/usr/share/icons/hicolor/scalable/apps/easydeskview.svg
 /usr/share/rustdesk/files/rustdesk.desktop
 /usr/share/rustdesk/files/rustdesk-link.desktop
 /usr/share/rustdesk/files/__pycache__/*

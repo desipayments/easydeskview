@@ -1,11 +1,11 @@
 [Desktop Entry]
-Name=RustDesk
+Name=EasyDeskView
 NoDisplay=true
-MimeType=x-scheme-handler/rustdesk;
+MimeType=x-scheme-handler/easydeskview;x-scheme-handler/rustdesk;
 TryExec=rustdesk
 Exec=rustdesk %u
-Icon=rustdesk
+Icon=easydeskview
 Terminal=false
 Type=Application
 StartupNotify=false
-StartupWMClass=rustdesk
+StartupWMClass=easydeskview

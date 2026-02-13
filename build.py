@@ -338,7 +338,11 @@ def build_flutter_deb(version, features):
     system2(
         'cp ../res/128x128@2x.png tmpdeb/usr/share/icons/hicolor/256x256/apps/rustdesk.png')
     system2(
+        'cp ../res/128x128@2x.png tmpdeb/usr/share/icons/hicolor/256x256/apps/easydeskview.png')
+    system2(
         'cp ../res/scalable.svg tmpdeb/usr/share/icons/hicolor/scalable/apps/rustdesk.svg')
+    system2(
+        'cp ../res/scalable.svg tmpdeb/usr/share/icons/hicolor/scalable/apps/easydeskview.svg')
     system2(
         'cp ../res/rustdesk.desktop tmpdeb/usr/share/applications/rustdesk.desktop')
     system2(
@@ -381,7 +385,11 @@ def build_deb_from_folder(version, binary_folder):
     system2(
         'cp ../res/128x128@2x.png tmpdeb/usr/share/icons/hicolor/256x256/apps/rustdesk.png')
     system2(
+        'cp ../res/128x128@2x.png tmpdeb/usr/share/icons/hicolor/256x256/apps/easydeskview.png')
+    system2(
         'cp ../res/scalable.svg tmpdeb/usr/share/icons/hicolor/scalable/apps/rustdesk.svg')
+    system2(
+        'cp ../res/scalable.svg tmpdeb/usr/share/icons/hicolor/scalable/apps/easydeskview.svg')
     system2(
         'cp ../res/rustdesk.desktop tmpdeb/usr/share/applications/rustdesk.desktop')
     system2(
@@ -610,7 +618,11 @@ def main():
                 system2(
                     'cp res/128x128@2x.png tmpdeb/usr/share/icons/hicolor/256x256/apps/rustdesk.png')
                 system2(
+                    'cp res/128x128@2x.png tmpdeb/usr/share/icons/hicolor/256x256/apps/easydeskview.png')
+                system2(
                     'cp res/scalable.svg tmpdeb/usr/share/icons/hicolor/scalable/apps/rustdesk.svg')
+                system2(
+                    'cp res/scalable.svg tmpdeb/usr/share/icons/hicolor/scalable/apps/easydeskview.svg')
                 system2(
                     'cp res/rustdesk.desktop tmpdeb/usr/share/applications/rustdesk.desktop')
                 system2(
