@@ -182,7 +182,7 @@ def generate_build_script_for_docker():
             vcpkg/bootstrap-vcpkg.sh
             popd
             $VCPKG_ROOT/vcpkg install --x-install-root="$VCPKG_ROOT/installed"
-            # build rustdesk
+            # build EasyDeskView
             ./build.py --flutter --hwcodec
         ''')
     system2("chmod +x /tmp/build.sh")
@@ -315,10 +315,19 @@ def ffi_bindgen_function_refactor():
         'sed -i "s/ffi.NativeFunction<ffi.Bool Function(DartPort/ffi.NativeFunction<ffi.Uint8 Function(DartPort/g" flutter/lib/generated_bridge.dart')
 
 
+def sync_flutter_assets():
+    # Keep Flutter UI assets aligned with branded files under res/.
+    system2('mkdir -p flutter/assets')
+    system2('cp -f res/icon.png flutter/assets/icon.png')
+    system2('if [ -f res/icon.svg ]; then cp -f res/icon.svg flutter/assets/icon.svg; elif [ -f res/scalable.svg ]; then cp -f res/scalable.svg flutter/assets/icon.svg; fi')
+    system2('if [ -f res/logo.png ]; then cp -f res/logo.png flutter/assets/logo.png; else cp -f res/icon.png flutter/assets/logo.png; fi')
+
+
 def build_flutter_deb(version, features):
     if not skip_cargo:
         system2(f'cargo build --features {features} --lib --release')
         ffi_bindgen_function_refactor()
+    sync_flutter_assets()
     os.chdir('flutter')
     system2('flutter build linux --release')
     system2('mkdir -p tmpdeb/usr/bin/')
@@ -331,8 +340,10 @@ def build_flutter_deb(version, features):
     system2('mkdir -p tmpdeb/usr/share/applications/')
     system2('mkdir -p tmpdeb/usr/share/polkit-1/actions')
     system2('rm tmpdeb/usr/bin/easydeskview || true')
+    system2('rm tmpdeb/usr/bin/rustdesk || true')
     system2(
         f'cp -r {flutter_build_dir}/* tmpdeb/usr/share/easydeskview/')
+    system2('if [ -f tmpdeb/usr/share/easydeskview/easydeskview ]; then ln -sf /usr/share/easydeskview/easydeskview tmpdeb/usr/bin/easydeskview; ln -sf /usr/share/easydeskview/easydeskview tmpdeb/usr/bin/rustdesk; else ln -sf /usr/share/easydeskview/rustdesk tmpdeb/usr/bin/easydeskview; ln -sf /usr/share/easydeskview/rustdesk tmpdeb/usr/bin/rustdesk; fi')
     system2(
         'cp ../res/easydeskview.service tmpdeb/usr/share/easydeskview/files/systemd/easydeskview.service')
     system2(
@@ -369,6 +380,7 @@ def build_flutter_deb(version, features):
 
 
 def build_deb_from_folder(version, binary_folder):
+    sync_flutter_assets()
     os.chdir('flutter')
     system2('mkdir -p tmpdeb/usr/bin/')
     system2('mkdir -p tmpdeb/usr/share/easydeskview')
@@ -378,8 +390,10 @@ def build_deb_from_folder(version, binary_folder):
     system2('mkdir -p tmpdeb/usr/share/applications/')
     system2('mkdir -p tmpdeb/usr/share/polkit-1/actions')
     system2('rm tmpdeb/usr/bin/easydeskview || true')
+    system2('rm tmpdeb/usr/bin/rustdesk || true')
     system2(
         f'cp -r ../{binary_folder}/* tmpdeb/usr/share/easydeskview/')
+    system2('if [ -f tmpdeb/usr/share/easydeskview/easydeskview ]; then ln -sf /usr/share/easydeskview/easydeskview tmpdeb/usr/bin/easydeskview; ln -sf /usr/share/easydeskview/easydeskview tmpdeb/usr/bin/rustdesk; else ln -sf /usr/share/easydeskview/rustdesk tmpdeb/usr/bin/easydeskview; ln -sf /usr/share/easydeskview/rustdesk tmpdeb/usr/bin/rustdesk; fi')
     system2(
         'cp ../res/easydeskview.service tmpdeb/usr/share/easydeskview/files/systemd/easydeskview.service')
     system2(
@@ -417,13 +431,14 @@ def build_flutter_dmg(version, features):
     # copy dylib
     system2(
         "cp target/release/liblibrustdesk.dylib target/release/librustdesk.dylib")
+    sync_flutter_assets()
     os.chdir('flutter')
     system2('flutter build macos --release')
     system2('cp -rf ../target/release/service ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS/')
     '''
     system2(
-        "create-dmg --volname \"RustDesk Installer\" --window-pos 200 120 --window-size 800 400 --icon-size 100 --app-drop-link 600 185 --icon RustDesk.app 200 190 --hide-extension RustDesk.app rustdesk.dmg ./build/macos/Build/Products/Release/RustDesk.app")
-    os.rename("rustdesk.dmg", f"../rustdesk-{version}.dmg")
+        "create-dmg --volname \"EasyDeskView Installer\" --window-pos 200 120 --window-size 800 400 --icon-size 100 --app-drop-link 600 185 --icon EasyDeskView.app 200 190 --hide-extension EasyDeskView.app EasyDeskView.dmg ./build/macos/Build/Products/Release/EasyDeskView.app")
+    os.rename("EasyDeskView.dmg", f"../EasyDeskView-{version}.dmg")
     '''
     os.chdir("..")
 
@@ -432,6 +447,7 @@ def build_flutter_arch_manjaro(version, features):
     if not skip_cargo:
         system2(f'cargo build --features {features} --lib --release')
     ffi_bindgen_function_refactor()
+    sync_flutter_assets()
     os.chdir('flutter')
     system2('flutter build linux --release')
     system2(f'strip {flutter_build_dir}/lib/librustdesk.so')
@@ -445,6 +461,7 @@ def build_flutter_windows(version, features, skip_portable_pack):
         if not os.path.exists("target/release/librustdesk.dll"):
             print("cargo build failed, please check rust source code.")
             exit(-1)
+    sync_flutter_assets()
     os.chdir('flutter')
     system2('flutter build windows --release')
     os.chdir('..')
@@ -505,17 +522,17 @@ def main():
             return
         system2('cargo build --release --features ' + features)
         # system2('upx.exe target/release/rustdesk.exe')
-        system2('mv target/release/rustdesk.exe target/release/RustDesk.exe')
+        system2('mv target/release/EasyDeskView.exe target/release/EasyDeskView.exe')
         pa = os.environ.get('P')
         if pa:
             # https://certera.com/kb/tutorial-guide-for-safenet-authentication-client-for-code-signing/
             system2(
                 f'signtool sign /a /v /p {pa} /debug /f .\\cert.pfx /t http://timestamp.digicert.com  '
-                'target\\release\\rustdesk.exe')
+                'target\\release\\EasyDeskView.exe')
         else:
             print('Not signed')
         system2(
-            f'cp -rf target/release/RustDesk.exe {res_dir}')
+            f'cp -rf target/release/EasyDeskView.exe {res_dir}')
         os.chdir('libs/portable')
         system2('pip3 install -r requirements.txt')
         system2(
@@ -537,24 +554,24 @@ def main():
         # pacman -U ./rustdesk.pkg.tar.zst
     elif os.path.isfile('/usr/bin/yum'):
         system2('cargo build --release --features ' + features)
-        system2('strip target/release/rustdesk')
+        system2('strip target/release/EasyDeskView')
         system2(
             "sed -i 's/Version:    .*/Version:    %s/g' res/rpm.spec" % version)
         system2('HBB=`pwd` rpmbuild -ba res/rpm.spec')
         system2(
-            'mv $HOME/rpmbuild/RPMS/x86_64/rustdesk-%s-0.x86_64.rpm ./rustdesk-%s-fedora28-centos8.rpm' % (
+            'mv $HOME/rpmbuild/RPMS/x86_64/EasyDeskView-%s-0.x86_64.rpm ./EasyDeskView-%s-fedora28-centos8.rpm' % (
                 version, version))
-        # yum localinstall rustdesk.rpm
+        # yum localinstall EasyDeskView.rpm
     elif os.path.isfile('/usr/bin/zypper'):
         system2('cargo build --release --features ' + features)
-        system2('strip target/release/rustdesk')
+        system2('strip target/release/EasyDeskView')
         system2(
             "sed -i 's/Version:    .*/Version:    %s/g' res/rpm-suse.spec" % version)
         system2('HBB=`pwd` rpmbuild -ba res/rpm-suse.spec')
         system2(
-            'mv $HOME/rpmbuild/RPMS/x86_64/rustdesk-%s-0.x86_64.rpm ./rustdesk-%s-suse.rpm' % (
+            'mv $HOME/rpmbuild/RPMS/x86_64/EasyDeskView-%s-0.x86_64.rpm ./EasyDeskView-%s-suse.rpm' % (
                 version, version))
-        # yum localinstall rustdesk.rpm
+        # yum localinstall EasyDeskView.rpm
     else:
         if flutter:
             if osx:
@@ -562,15 +579,15 @@ def main():
                 pass
             else:
                 # system2(
-                #     'mv target/release/bundle/deb/rustdesk*.deb ./flutter/rustdesk.deb')
+                #     'mv target/release/bundle/deb/EasyDeskView*.deb ./flutter/EasyDeskView.deb')
                 build_flutter_deb(version, features)
         else:
             system2('cargo bundle --release --features ' + features)
             if osx:
                 system2(
-                    'strip target/release/bundle/osx/RustDesk.app/Contents/MacOS/rustdesk')
+                    'strip target/release/bundle/osx/EasyDeskView.app/Contents/MacOS/EasyDeskView')
                 system2(
-                    'cp libsciter.dylib target/release/bundle/osx/RustDesk.app/Contents/MacOS/')
+                    'cp libsciter.dylib target/release/bundle/osx/EasyDeskView.app/Contents/MacOS/')
                 # https://github.com/sindresorhus/create-dmg
                 system2('/bin/rm -rf *.dmg')
                 pa = os.environ.get('P')
@@ -578,38 +595,39 @@ def main():
                     system2('''
     # buggy: rcodesign sign ... path/*, have to sign one by one
     # install rcodesign via cargo install apple-codesign
-    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/RustDesk.app/Contents/MacOS/rustdesk
-    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/RustDesk.app/Contents/MacOS/libsciter.dylib
-    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/RustDesk.app
+    #rcodesign sign --p12-file ~/.p12/EasyDeskView-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/EasyDeskView.app/Contents/MacOS/EasyDeskView
+    #rcodesign sign --p12-file ~/.p12/EasyDeskView-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/EasyDeskView.app/Contents/MacOS/libsciter.dylib
+    #rcodesign sign --p12-file ~/.p12/EasyDeskView-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/EasyDeskView.app
     # goto "Keychain Access" -> "My Certificates" for below id which starts with "Developer ID Application:"
-    codesign -s "Developer ID Application: {0}" --force --options runtime  ./target/release/bundle/osx/RustDesk.app/Contents/MacOS/*
-    codesign -s "Developer ID Application: {0}" --force --options runtime  ./target/release/bundle/osx/RustDesk.app
+    codesign -s "Developer ID Application: {0}" --force --options runtime  ./target/release/bundle/osx/EasyDeskView.app/Contents/MacOS/*
+    codesign -s "Developer ID Application: {0}" --force --options runtime  ./target/release/bundle/osx/EasyDeskView.app
     '''.format(pa))
                 system2(
-                    'create-dmg "RustDesk %s.dmg" "target/release/bundle/osx/RustDesk.app"' % version)
-                os.rename('RustDesk %s.dmg' %
-                          version, 'rustdesk-%s.dmg' % version)
+                    'create-dmg "EasyDeskView %s.dmg" "target/release/bundle/osx/EasyDeskView.app"' % version)
+                os.rename('EasyDeskView %s.dmg' %
+                          version, 'EasyDeskView-%s.dmg' % version)
                 if pa:
                     system2('''
     # https://pyoxidizer.readthedocs.io/en/apple-codesign-0.14.0/apple_codesign.html
     # https://pyoxidizer.readthedocs.io/en/stable/tugger_code_signing.html
     # https://developer.apple.com/developer-id/
     # goto xcode and login with apple id, manager certificates (Developer ID Application and/or Developer ID Installer) online there (only download and double click (install) cer file can not export p12 because no private key)
-    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./rustdesk-{1}.dmg
-    codesign -s "Developer ID Application: {0}" --force --options runtime ./rustdesk-{1}.dmg
+    #rcodesign sign --p12-file ~/.p12/EasyDeskView-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./EasyDeskView-{1}.dmg
+    codesign -s "Developer ID Application: {0}" --force --options runtime ./EasyDeskView-{1}.dmg
     # https://appstoreconnect.apple.com/access/api
     # https://gregoryszorc.com/docs/apple-codesign/stable/apple_codesign_getting_started.html#apple-codesign-app-store-connect-api-key
     # p8 file is generated when you generate api key (can download only once)
-    rcodesign notary-submit --api-key-path ../.p12/api-key.json  --staple rustdesk-{1}.dmg
-    # verify:  spctl -a -t exec -v /Applications/RustDesk.app
+    rcodesign notary-submit --api-key-path ../.p12/api-key.json  --staple EasyDeskView-{1}.dmg
+    # verify:  spctl -a -t exec -v /Applications/EasyDeskView.app
     '''.format(pa, version))
                 else:
                     print('Not signed')
             else:
                 # build deb package
                 system2(
-                    'mv target/release/bundle/deb/rustdesk*.deb ./easydeskview.deb')
+                    'mv target/release/bundle/deb/EasyDeskView*.deb ./easydeskview.deb')
                 system2('dpkg-deb -R easydeskview.deb tmpdeb')
+                system2('mkdir -p tmpdeb/usr/bin/')
                 system2('mkdir -p tmpdeb/usr/share/easydeskview/files/systemd/')
                 system2('mkdir -p tmpdeb/usr/share/icons/hicolor/256x256/apps/')
                 system2('mkdir -p tmpdeb/usr/share/icons/hicolor/scalable/apps/')
@@ -631,15 +649,19 @@ def main():
                 os.system('cp -a res/startwm.sh tmpdeb/etc/easydeskview/')
                 os.system('mkdir -p tmpdeb/etc/X11/easydeskview/')
                 os.system('cp res/xorg.conf tmpdeb/etc/X11/easydeskview/')
-                os.system('cp -a DEBIAN/* tmpdeb/DEBIAN/')
+                generate_control_file(version)
+                system2('cp -a res/DEBIAN/* tmpdeb/DEBIAN/')
                 os.system('mkdir -p tmpdeb/etc/pam.d/')
                 os.system('cp pam.d/rustdesk.debian tmpdeb/etc/pam.d/easydeskview')
                 system2('if [ -f tmpdeb/usr/bin/easydeskview ]; then strip tmpdeb/usr/bin/easydeskview; elif [ -f tmpdeb/usr/bin/rustdesk ]; then strip tmpdeb/usr/bin/rustdesk; fi')
                 system2('mkdir -p tmpdeb/usr/share/easydeskview')
                 system2('if [ -f tmpdeb/usr/bin/easydeskview ]; then mv tmpdeb/usr/bin/easydeskview tmpdeb/usr/share/easydeskview/easydeskview; elif [ -f tmpdeb/usr/bin/rustdesk ]; then mv tmpdeb/usr/bin/rustdesk tmpdeb/usr/share/easydeskview/easydeskview; fi')
+                system2('ln -sf /usr/share/easydeskview/easydeskview tmpdeb/usr/bin/easydeskview')
+                system2('ln -sf /usr/share/easydeskview/easydeskview tmpdeb/usr/bin/rustdesk')
                 system2('cp libsciter-gtk.so tmpdeb/usr/share/easydeskview/')
                 md5_file_folder("tmpdeb/")
                 system2('dpkg-deb -b tmpdeb easydeskview.deb; /bin/rm -rf tmpdeb/')
+                system2('/bin/rm -rf res/DEBIAN/control')
                 os.rename('easydeskview.deb', 'easydeskview-%s.deb' % version)
 
 

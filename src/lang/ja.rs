@@ -578,7 +578,7 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("2FA code must be 6 digits.", "二要素認証コードは 6 文字である必要があります。"),
         ("Multiple Windows sessions found", "複数の Windows セッションが見つかりました"),
         ("Please select the session you want to connect to", "接続したいセッションを選択してください"),
-        ("powered_by_me", "Powered by RustDesk"),
+        ("powered_by_me", "Powered by EasyDeskView"),
         ("outgoing_only_desk_tip", "カスタマイズされたエディションを使用しています。\n他のコンピューターに接続できますが、他のコンピューターからのリクエストは受信できません。"),
         ("preset_password_warning", "このエディションには、既定で固定パスワードが設定されています。このパスワードを知っているユーザーはあなたのデバイスを完全にコントロールできるため、そのような危険がある場合は直ちに RustDesk をアンインストールして下さい！"),
         ("Security Alert", "セキュリティ警告"),
