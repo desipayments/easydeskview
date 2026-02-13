@@ -1,6 +1,5 @@
 [Unit]
 Description=EasyDeskView
-Requires=network.target
 After=systemd-user-sessions.service
 
 [Service]
@@ -8,15 +7,11 @@ Type=simple
 ExecStart=/usr/bin/easydeskview --service
 # kill --tray and --server both
 ExecStop=pkill -f "easydeskview --"
-# below two lines do not work, have to use above one line
+# if you want only kill one of them, you can use this below
 #ExecStop=pkill -f "easydeskview --tray"
 #ExecStop=pkill -f "easydeskview --server"
 PIDFile=/run/easydeskview.pid
-KillMode=mixed
-TimeoutStopSec=30
-User=root
 LimitNOFILE=100000
-Environment="PULSE_LATENCY_MSEC=60" "PIPEWIRE_LATENCY=1024/48000"
 
 [Install]
 WantedBy=multi-user.target

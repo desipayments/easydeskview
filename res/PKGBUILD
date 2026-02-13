@@ -1,4 +1,4 @@
-pkgname=rustdesk
+pkgname=easydeskview
 pkgver=1.4.5
 pkgrel=0
 epoch=
@@ -23,15 +23,21 @@ md5sums=() #generate with 'makepkg -g'
 
 package() {
   if [[ ${FLUTTER} ]]; then
-	  mkdir -p "${pkgdir}/usr/share/rustdesk" && cp -r ${HBB}/flutter/build/linux/x64/release/bundle/* -t "${pkgdir}/usr/share/rustdesk"
+	  mkdir -p "${pkgdir}/usr/share/easydeskview" && cp -r ${HBB}/flutter/build/linux/x64/release/bundle/* -t "${pkgdir}/usr/share/easydeskview"
   fi
   mkdir -p "${pkgdir}/usr/bin"
-  pushd ${pkgdir} && ln -s /usr/share/rustdesk/rustdesk usr/bin/rustdesk && popd
-  install -Dm 644 $HBB/res/rustdesk.service -t "${pkgdir}/usr/share/rustdesk/files"
-  install -Dm 644 $HBB/res/rustdesk.desktop -t "${pkgdir}/usr/share/rustdesk/files"
-  install -Dm 644 $HBB/res/rustdesk-link.desktop -t "${pkgdir}/usr/share/rustdesk/files"
-  install -Dm 644 $HBB/res/128x128@2x.png "${pkgdir}/usr/share/icons/hicolor/256x256/apps/rustdesk.png"
-  install -Dm 644 $HBB/res/scalable.svg "${pkgdir}/usr/share/icons/hicolor/scalable/apps/rustdesk.svg"
+  pushd ${pkgdir}
+  if [[ -f usr/share/easydeskview/easydeskview ]]; then
+    ln -s /usr/share/easydeskview/easydeskview usr/bin/easydeskview
+    ln -s /usr/share/easydeskview/easydeskview usr/bin/rustdesk
+  else
+    ln -s /usr/share/easydeskview/rustdesk usr/bin/easydeskview
+    ln -s /usr/share/easydeskview/rustdesk usr/bin/rustdesk
+  fi
+  popd
+  install -Dm 644 $HBB/res/easydeskview.service -t "${pkgdir}/usr/share/easydeskview/files"
+  install -Dm 644 $HBB/res/easydeskview.desktop -t "${pkgdir}/usr/share/easydeskview/files"
+  install -Dm 644 $HBB/res/easydeskview-link.desktop -t "${pkgdir}/usr/share/easydeskview/files"
   install -Dm 644 $HBB/res/128x128@2x.png "${pkgdir}/usr/share/icons/hicolor/256x256/apps/easydeskview.png"
   install -Dm 644 $HBB/res/scalable.svg "${pkgdir}/usr/share/icons/hicolor/scalable/apps/easydeskview.svg"
 }
