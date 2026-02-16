@@ -1,11 +1,11 @@
 [package]
-name = "rustdesk"
+name = "easydeskview"
 version = "1.4.5"
 authors = ["rustdesk <info@rustdesk.com>"]
 edition = "2021"
 build= "build.rs"
-description = "RustDesk Remote Desktop"
-default-run = "rustdesk"
+description = "easydeskview Remote Desktop"
+default-run = "easydeskview"
 rust-version = "1.75"
 
 [lib]
