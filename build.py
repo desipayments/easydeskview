@@ -38,11 +38,17 @@ def get_deb_extra_depends() -> str:
         return ", libatomic1"
     return ""
 
-def system2(cmd):
-    exit_code = os.system(cmd)
-    if exit_code != 0:
-        sys.stderr.write(f"Error occurred when executing: `{cmd}`. Exiting.\n")
-        sys.exit(-1)
+import time
+
+def system2(cmd, retries=3, delay=5):
+    for i in range(retries):
+        exit_code = os.system(cmd)
+        if exit_code == 0:
+            return
+        print(f"Command '{cmd}' failed with exit code {exit_code}. Retrying in {delay} seconds...")
+        time.sleep(delay)
+    sys.stderr.write(f"Error occurred when executing: `{cmd}`. Exiting after {retries} retries.\n")
+    sys.exit(-1)
 
 
 def get_version():

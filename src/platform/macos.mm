@@ -29,11 +29,14 @@ extern "C" bool IsCanScreenRecording(bool prompt) {
     #ifdef NO_InputMonitoringAuthStatus
     return false;
     #else
-    bool res = CGPreflightScreenCaptureAccess();
-    if (!res && prompt) {
-        CGRequestScreenCaptureAccess();
+    if (@available(macOS 10.15, *)) {
+        bool res = CGPreflightScreenCaptureAccess();
+        if (!res && prompt) {
+            CGRequestScreenCaptureAccess();
+        }
+        return res;
     }
-    return res;
+    return true;
     #endif
 }
 
@@ -44,7 +47,7 @@ extern "C" bool InputMonitoringAuthStatus(bool prompt) {
     #ifdef NO_InputMonitoringAuthStatus
     return true;
     #else
-    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_15) {
+    if (@available(macOS 10.15, *)) {
         IOHIDAccessType theType = IOHIDCheckAccess(kIOHIDRequestTypeListenEvent);
         NSLog(@"IOHIDCheckAccess = %d, kIOHIDAccessTypeGranted = %d", theType, kIOHIDAccessTypeGranted);
         switch (theType) {
@@ -75,6 +78,8 @@ extern "C" bool InputMonitoringAuthStatus(bool prompt) {
     #endif
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 extern "C" bool Elevate(char* process, char** args) {
     AuthorizationRef authRef;
     OSStatus status;
@@ -111,6 +116,7 @@ extern "C" bool Elevate(char* process, char** args) {
     AuthorizationFree(authRef, kAuthorizationFlagDefaults);
     return true;
 }
+#pragma clang diagnostic pop
 
 extern "C" bool MacCheckAdminAuthorization() {
     return Elevate(NULL, NULL);
@@ -133,6 +139,8 @@ extern "C" float BackingScaleFactor(uint32_t display) {
 // https://github.com/jhford/screenresolution/blob/master/cg_utils.c
 // https://github.com/jdoupe/screenres/blob/master/setgetscreen.m
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 size_t bitDepth(CGDisplayModeRef mode) {
     size_t depth = 0;
     // Deprecated, same display same bpp? 
@@ -159,6 +167,7 @@ size_t bitDepth(CGDisplayModeRef mode) {
     CFRelease(pixelEncoding);	
     return depth;	
 }
+#pragma clang diagnostic pop
 
 static bool isHiDPIMode(CGDisplayModeRef mode) {
     // Check if the mode is HiDPI by comparing pixel width to width
