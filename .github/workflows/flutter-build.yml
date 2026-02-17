@@ -1490,7 +1490,12 @@ jobs:
               export JOBS=""
             fi
             echo $JOBS
-            cargo build --lib $JOBS --features hwcodec,flutter,unix-file-copy-paste --release
+            s=0
+            for i in 1 2 3; do
+              cargo build --lib $JOBS --features hwcodec,flutter,unix-file-copy-paste --release && s=0 && break || s=$? && echo "Cargo build failed. Retrying...";
+              sleep 15
+            done
+            (exit $s)
             rm -rf target/release/deps target/release/build
             rm -rf ~/.cargo
 
@@ -1828,7 +1833,12 @@ jobs:
             # build rustdesk
             python3 ./res/inline-sciter.py
             export CARGO_INCREMENTAL=0
-            cargo build --features inline${{ matrix.job.extra_features }} --release --bins --jobs 1
+            s=0
+            for i in 1 2 3; do
+              cargo build --features inline${{ matrix.job.extra_features }} --release --bins --jobs 1 && s=0 && break || s=$? && echo "Cargo build failed. Retrying...";
+              sleep 15
+            done
+            (exit $s)
             # make debian package
             mkdir -p ./Release
             mv ./target/release/rustdesk ./Release/rustdesk
