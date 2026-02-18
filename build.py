@@ -303,7 +303,7 @@ Section: net
 Priority: optional
 Version: %s
 Architecture: %s
-Maintainer: easydeskview <support@easydeskview.com>
+  Maintainer: DesiPayments <info@desipayments.com>
 Homepage: https://easydeskview.com
 Depends: libgtk-3-0, libxcb-randr0, libxdo3 | libxdo4, libxfixes3, libxcb-shape0, libxcb-xfixes0, libasound2, libsystemd0, curl, libva2, libva-drm2, libva-x11-2, libgstreamer-plugins-base1.0-0, libpam0g, gstreamer1.0-pipewire%s
 Recommends: libayatana-appindicator3-1

@@ -65,8 +65,6 @@ cp /usr/share/easydeskview/files/easydeskview.desktop /usr/share/applications/
 cp /usr/share/easydeskview/files/easydeskview-link.desktop /usr/share/applications/
 if [ -f /usr/share/easydeskview/easydeskview ]; then
   ln -sf /usr/share/easydeskview/easydeskview /usr/bin/easydeskview
-else
-  ln -sf /usr/share/easydeskview/rustdesk /usr/bin/easydeskview
 fi
 systemctl daemon-reload
 systemctl enable easydeskview
@@ -91,8 +89,6 @@ case "$1" in
   0)
     # for uninstall
     rm /usr/bin/easydeskview || true
-    rmdir /usr/lib/rustdesk || true
-    rmdir /usr/local/rustdesk || true
     rmdir /usr/share/easydeskview || true
     rm /usr/share/applications/easydeskview.desktop || true
     rm /usr/share/applications/easydeskview-link.desktop || true
@@ -100,7 +96,5 @@ case "$1" in
   ;;
   1)
     # for upgrade
-    rmdir /usr/lib/rustdesk || true
-    rmdir /usr/local/rustdesk || true
   ;;
 esac

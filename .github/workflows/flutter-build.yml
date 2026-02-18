@@ -1,4 +1,4 @@
-name: Build the flutter version of the RustDesk
+name: Build the flutter version of the EasyDeskView
 
 on:
   workflow_call:
@@ -14,7 +14,7 @@ on:
 # variables from this workflow!
 #
 # It does NOT read build steps, however, so please fix 'flutter/build_fdroid.sh
-# whenever you add changes to Android CI build action ('build-rustdesk-android')
+# whenever you add changes to Android CI build action ('build-easydeskview-android')
 # in this file!
 
 env:
@@ -51,8 +51,8 @@ jobs:
   generate-bridge:
     uses: './.github/workflows/bridge.yml'
 
-  build-RustDeskTempTopMostWindow:
-    uses: './.github/workflows/third-party-RustDeskTempTopMostWindow.yml'
+  build-EasyDeskViewTempTopMostWindow:
+    uses: './.github/workflows/third-party-EasyDeskViewTempTopMostWindow.yml'
     with:
       upload-artifact: ${{ inputs.upload-artifact }}
       target: windows-2022
@@ -62,7 +62,7 @@ jobs:
 
   build-for-windows-flutter:
     name: ${{ matrix.job.target }}
-    needs: [build-RustDeskTempTopMostWindow, generate-bridge]
+    needs: [build-EasyDeskViewTempTopMostWindow, generate-bridge]
     runs-on: ${{ matrix.job.os }}
     strategy:
       fail-fast: false
@@ -189,7 +189,7 @@ jobs:
                 Write-Output "rustdesk_printer_driver_v4-1.4, checksums match, extract the file."
                 Expand-Archive rustdesk_printer_driver_v4-1.4.zip -DestinationPath .
                 mkdir ./easydeskview/drivers
-                mv -Force .\rustdesk_printer_driver_v4-1.4 ./easydeskview/drivers/RustDeskPrinterDriver
+                mv -Force .\rustdesk_printer_driver_v4-1.4 ./easydeskview/drivers/EasyDeskViewPrinterDriver
                 Expand-Archive printer_driver_adapter.zip -DestinationPath .
                 mv -Force .\printer_driver_adapter.dll ./easydeskview
             } elseif ($checksum_driver -ne $downloadsum_driver.Hash) {
@@ -217,7 +217,7 @@ jobs:
             ls -l ./libs/portable/Runner.res;
           fi
 
-      - name: Download RustDeskTempTopMostWindow artifacts
+      - name: Download EasyDeskViewTempTopMostWindow artifacts
         uses: actions/download-artifact@master
         if: ${{ inputs.upload-artifact }}
         with:
@@ -229,9 +229,9 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: easydeskview-unsigned-windows-${{ matrix.job.arch }}
-          path: rustdesk
+          path: easydeskview
 
-      - name: Sign rustdesk files
+      - name: Sign easydeskview files
         if: env.UPLOAD_ARTIFACT == 'true' && env.SIGN_BASE_URL != '-2'
         shell: bash
         run: |
@@ -245,10 +245,10 @@ jobs:
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
-          python3 ./generate.py -f ../../easydeskview/ -o . -e ../../easydeskview/rustdesk.exe
+          python3 ./generate.py -f ../../easydeskview/ -o . -e ../../easydeskview/easydeskview.exe
           popd
           mkdir -p ./SignOutput
-          mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}.exe
+          mv ./target/release/easydeskview-portable-packer.exe ./SignOutput/easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}.exe
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
@@ -263,7 +263,7 @@ jobs:
           mv ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}.msi
           sha256sum ../../SignOutput/easydeskview-*.msi
 
-      - name: Sign rustdesk self-extracted file
+      - name: Sign easydeskview self-extracted file
         if: env.UPLOAD_ARTIFACT == 'true' && env.SIGN_BASE_URL != '-2'
         shell: bash
         run: |
@@ -364,7 +364,7 @@ jobs:
           sed -i 's/branch = "dyn"/branch = "dyn_x86"/g' ./Cargo.toml
           cargo build --features inline,vram,hwcodec --release --bins
           mkdir -p ./Release
-          mv ./target/release/rustdesk.exe ./Release/rustdesk.exe
+          mv ./target/release/easydeskview.exe ./Release/easydeskview.exe
           curl -LJ -o ./Release/sciter.dll https://github.com/c-smile/sciter-sdk/raw/master/bin.win/x32/sciter.dll
           echo "output_folder=./Release" >> $GITHUB_OUTPUT
           curl -LJ -o ./usbmmidd_v2.zip https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip
@@ -411,12 +411,12 @@ jobs:
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
-          python3 ./generate.py -f ../../Release/ -o . -e ../../Release/rustdesk.exe
+          python3 ./generate.py -f ../../Release/ -o . -e ../../Release/easydeskview.exe
           popd
           mkdir -p ./SignOutput
-          mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}-sciter.exe
+          mv ./target/release/easydeskview-portable-packer.exe ./SignOutput/easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}-sciter.exe
 
-      - name: Sign rustdesk self-extracted file
+      - name: Sign easydeskview self-extracted file
         if: env.UPLOAD_ARTIFACT == 'true' && env.SIGN_BASE_URL != '-2'
         shell: bash
         run: |
@@ -431,7 +431,7 @@ jobs:
           files: |
             ./SignOutput/easydeskview-*.exe
 
-  build-rustdesk-ios:
+  build-easydeskview-ios:
     if: ${{ inputs.upload-artifact }}
     name: Build EasyDeskView ios ipa
     runs-on: ${{ matrix.job.os }}
@@ -598,7 +598,7 @@ jobs:
       - name: Check sign and import sign key
         if: env.MACOS_P12_BASE64 != null
         run: |
-          security default-keychain -s rustdesk.keychain
+          security default-keychain -s easydeskview.keychain
           security find-identity -v
 
       - name: Import notarize key
@@ -606,7 +606,7 @@ jobs:
         uses: timheuer/base64-to-file@v1.2
         with:
           # https://gregoryszorc.com/docs/apple-codesign/stable/apple_codesign_rcodesign.html#notarizing-and-stapling
-          fileName: rustdesk.json
+          fileName: easydeskview.json
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.MACOS_NOTARIZE_JSON }}
 
@@ -726,7 +726,7 @@ jobs:
           CREATE_DMG="$(command -v create-dmg)"
           CREATE_DMG="$(readlink -f "$CREATE_DMG")"
           sed -i -e 's/MAXIMUM_UNMOUNTING_ATTEMPTS=3/MAXIMUM_UNMOUNTING_ATTEMPTS=7/' "$CREATE_DMG"
-          create-dmg --icon "RustDesk.app" 200 190 --hide-extension "RustDesk.app" --window-size 800 400 --app-drop-link 600 185 easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}.dmg ./flutter/build/macos/Build/Products/Release/RustDesk.app
+          create-dmg --icon "EasyDeskView.app" 200 190 --hide-extension "EasyDeskView.app" --window-size 800 400 --app-drop-link 600 185 easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}.dmg ./flutter/build/macos/Build/Products/Release/EasyDeskView.app
 
       - name: Upload unsigned macOS app
         if: env.UPLOAD_ARTIFACT == 'true'
@@ -743,15 +743,15 @@ jobs:
           CREATE_DMG="$(readlink -f "$CREATE_DMG")"
           sed -i -e 's/MAXIMUM_UNMOUNTING_ATTEMPTS=3/MAXIMUM_UNMOUNTING_ATTEMPTS=7/' "$CREATE_DMG"
           # Unlock keychain
-          security default-keychain -s rustdesk.keychain
-          security unlock-keychain -p ${{ secrets.MACOS_P12_PASSWORD }} rustdesk.keychain
+          security default-keychain -s easydeskview.keychain
+          security unlock-keychain -p ${{ secrets.MACOS_P12_PASSWORD }} easydeskview.keychain
           # start sign the rustdesk.app and dmg
           rm -rf *.dmg || true
-          codesign --force --options runtime -s ${{ secrets.MACOS_CODESIGN_IDENTITY }} --deep --strict ./flutter/build/macos/Build/Products/Release/RustDesk.app -vvv
-          create-dmg --icon "RustDesk.app" 200 190 --hide-extension "RustDesk.app" --window-size 800 400 --app-drop-link 600 185 easydeskview-${{ env.VERSION }}.dmg ./flutter/build/macos/Build/Products/Release/RustDesk.app
+          codesign --force --options runtime -s ${{ secrets.MACOS_CODESIGN_IDENTITY }} --deep --strict ./flutter/build/macos/Build/Products/Release/EasyDeskView.app -vvv
+          create-dmg --icon "EasyDeskView.app" 200 190 --hide-extension "EasyDeskView.app" --window-size 800 400 --app-drop-link 600 185 easydeskview-${{ env.VERSION }}.dmg ./flutter/build/macos/Build/Products/Release/EasyDeskView.app
           codesign --force --options runtime -s ${{ secrets.MACOS_CODESIGN_IDENTITY }} --deep --strict easydeskview-${{ env.VERSION }}.dmg -vvv
           # notarize the rustdesk-${{ env.VERSION }}.dmg
-          rcodesign notary-submit --api-key-path ${{ github.workspace }}/rustdesk.json  --staple easydeskview-${{ env.VERSION }}.dmg
+          rcodesign notary-submit --api-key-path ${{ github.workspace }}/easydeskview.json  --staple easydeskview-${{ env.VERSION }}.dmg
 
       - name: Rename rustdesk
         if: env.UPLOAD_ARTIFACT == 'true'
@@ -812,7 +812,7 @@ jobs:
           tag_name: ${{ env.TAG_NAME }}
           files: easydeskview-${{ env.VERSION }}-unsigned.tar.gz
 
-  build-rustdesk-android:
+  build-easydeskview-android:
     needs: [generate-bridge]
     name: Build EasyDeskView android apk ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.os }}
@@ -980,22 +980,22 @@ jobs:
             aarch64-linux-android)
               ./flutter/ndk_arm64.sh
               mkdir -p ./flutter/android/app/src/main/jniLibs/arm64-v8a
-              cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/librustdesk.so
+              cp ./target/${{ matrix.job.target }}/release/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/libeasydeskview.so
             ;;
             armv7-linux-androideabi)
               ./flutter/ndk_arm.sh
               mkdir -p ./flutter/android/app/src/main/jniLibs/armeabi-v7a
-              cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/librustdesk.so
+              cp ./target/${{ matrix.job.target }}/release/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/libeasydeskview.so
             ;;
             x86_64-linux-android)
               ./flutter/ndk_x64.sh
               mkdir -p ./flutter/android/app/src/main/jniLibs/x86_64
-              cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86_64/librustdesk.so
+              cp ./target/${{ matrix.job.target }}/release/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/x86_64/libeasydeskview.so
             ;;
             i686-linux-android)
               ./flutter/ndk_x86.sh
               mkdir -p ./flutter/android/app/src/main/jniLibs/x86
-              cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86/librustdesk.so
+              cp ./target/${{ matrix.job.target }}/release/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/x86/libeasydeskview.so
             ;;
           esac
 
@@ -1003,7 +1003,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: libeasydeskview.so.${{ matrix.job.target }}
-          path: ./target/${{ matrix.job.target }}/release/liblibrustdesk.so
+          path: ./target/${{ matrix.job.target }}/release/liblibeasydeskview.so
 
       - name: Build EasyDeskView
         shell: bash
@@ -1019,7 +1019,7 @@ jobs:
             aarch64-linux-android)
               mkdir -p ./flutter/android/app/src/main/jniLibs/arm64-v8a
               cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/
-              cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/librustdesk.so
+              cp ./target/${{ matrix.job.target }}/release/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/libeasydeskview.so
               # build flutter
               pushd flutter
               flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-arm64 --split-per-abi
@@ -1028,7 +1028,7 @@ jobs:
             armv7-linux-androideabi)
               mkdir -p ./flutter/android/app/src/main/jniLibs/armeabi-v7a
               cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/arm-linux-androideabi/libc++_shared.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/
-              cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/librustdesk.so
+              cp ./target/${{ matrix.job.target }}/release/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/libeasydeskview.so
               # build flutter
               pushd flutter
               flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-arm --split-per-abi
@@ -1037,7 +1037,7 @@ jobs:
             x86_64-linux-android)
               mkdir -p ./flutter/android/app/src/main/jniLibs/x86_64
               cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/libc++_shared.so ./flutter/android/app/src/main/jniLibs/x86_64/
-              cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86_64/librustdesk.so
+              cp ./target/${{ matrix.job.target }}/release/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/x86_64/libeasydeskview.so
               # build flutter
               pushd flutter
               flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-x64 --split-per-abi
@@ -1046,7 +1046,7 @@ jobs:
             i686-linux-android)
               mkdir -p ./flutter/android/app/src/main/jniLibs/x86
               cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/i686-linux-android/libc++_shared.so ./flutter/android/app/src/main/jniLibs/x86/
-              cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86/librustdesk.so
+              cp ./target/${{ matrix.job.target }}/release/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/x86/libeasydeskview.so
               # build flutter
               pushd flutter
               flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-x86 --split-per-abi
@@ -1068,7 +1068,7 @@ jobs:
       - uses: r0adkll/sign-android-release@v1
         name: Sign app APK
         if: env.ANDROID_SIGNING_KEY != null
-        id: sign-rustdesk
+        id: sign-easydeskview
         with:
           releaseDirectory: ./signed-apk
           signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
@@ -1084,7 +1084,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}.apk
-          path: ${{steps.sign-rustdesk.outputs.signedReleaseFile}}
+          path: ${{steps.sign-easydeskview.outputs.signedReleaseFile}}
 
       - name: Publish signed apk package
         if: env.ANDROID_SIGNING_KEY != null && env.UPLOAD_ARTIFACT == 'true'
@@ -1093,7 +1093,7 @@ jobs:
           prerelease: true
           tag_name: ${{ env.TAG_NAME }}
           files: |
-            ${{steps.sign-rustdesk.outputs.signedReleaseFile}}
+            ${{steps.sign-easydeskview.outputs.signedReleaseFile}}
 
       - name: Publish unsigned apk package
         if: env.ANDROID_SIGNING_KEY == null && env.UPLOAD_ARTIFACT == 'true'
@@ -1104,8 +1104,8 @@ jobs:
           files: |
             signed-apk/easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}.apk
 
-  build-rustdesk-android-universal:
-    needs: [build-rustdesk-android]
+  build-easydeskview-android-universal:
+    needs: [build-easydeskview-android]
     name: Build EasyDeskView android universal apk
     if: ${{ inputs.upload-artifact }}
     runs-on: ubuntu-24.04
@@ -1226,12 +1226,12 @@ jobs:
           sed -i "s/signingConfigs.release/signingConfigs.debug/g" ./flutter/android/app/build.gradle
           mv ./flutter/android/app/src/main/jniLibs/arm64-v8a/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/libeasydeskview.so
           cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/
-          mv ./flutter/android/app/src/main/jniLibs/armeabi-v7a/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/librustdesk.so
+          mv ./flutter/android/app/src/main/jniLibs/armeabi-v7a/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/libeasydeskview.so
           cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/arm-linux-androideabi/libc++_shared.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/
-          mv ./flutter/android/app/src/main/jniLibs/x86_64/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86_64/librustdesk.so
+          mv ./flutter/android/app/src/main/jniLibs/x86_64/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/x86_64/libeasydeskview.so
           cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/libc++_shared.so ./flutter/android/app/src/main/jniLibs/x86_64/
           if [ "${{ env.reltype }}" = "debug" ]; then
-            mv ./flutter/android/app/src/main/jniLibs/x86/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86/librustdesk.so
+            mv ./flutter/android/app/src/main/jniLibs/x86/liblibeasydeskview.so ./flutter/android/app/src/main/jniLibs/x86/libeasydeskview.so
             cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/i686-linux-android/libc++_shared.so ./flutter/android/app/src/main/jniLibs/x86/
           fi
           # build flutter
@@ -1252,7 +1252,7 @@ jobs:
       - uses: r0adkll/sign-android-release@v1
         name: Sign app APK
         if: env.ANDROID_SIGNING_KEY != null
-        id: sign-rustdesk
+        id: sign-easydeskview
         with:
           releaseDirectory: ./signed-apk
           signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
@@ -1268,7 +1268,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}.apk
-          path: ${{steps.sign-rustdesk.outputs.signedReleaseFile}}
+          path: ${{steps.sign-easydeskview.outputs.signedReleaseFile}}
 
       - name: Publish signed apk package
         if: env.ANDROID_SIGNING_KEY != null && env.UPLOAD_ARTIFACT == 'true'
@@ -1277,7 +1277,7 @@ jobs:
           prerelease: true
           tag_name: ${{ env.TAG_NAME }}
           files: |
-            ${{steps.sign-rustdesk.outputs.signedReleaseFile}}
+            ${{steps.sign-easydeskview.outputs.signedReleaseFile}}
 
       - name: Publish unsigned apk package
         if: env.ANDROID_SIGNING_KEY == null && env.UPLOAD_ARTIFACT == 'true'
@@ -1288,7 +1288,7 @@ jobs:
           files: |
             signed-apk/easydeskview-${{ env.VERSION }}-universal${{ env.suffix }}.apk
 
-  build-rustdesk-linux:
+  build-easydeskview-linux:
     needs: [generate-bridge]
     name: Build EasyDeskView linux ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.on }}
@@ -1553,7 +1553,7 @@ jobs:
             export CARGO_INCREMENTAL=0
             export DEB_ARCH=${{ matrix.job.deb_arch }}
             python3 ./build.py --flutter --skip-cargo
-            for name in rustdesk*??.deb; do
+            for name in easydeskview*??.deb; do
               mv "$name" "easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}.deb"
             done
 
@@ -1567,8 +1567,8 @@ jobs:
             esac
             HBB=`pwd` rpmbuild ./res/rpm-flutter.spec -bb
             pushd ~/rpmbuild/RPMS/${{ matrix.job.arch }}
-            for name in rustdesk*??.rpm; do
-                mv "$name" /workspace/"easydeskview-${name#rustdesk-}"
+            for name in easydeskview*??.rpm; do
+                mv "$name" /workspace/"easydeskview-${name#easydeskview-}"
             done
 
             # rpm suse package
@@ -1581,8 +1581,8 @@ jobs:
             esac
             HBB=`pwd` rpmbuild ./res/rpm-flutter-suse.spec -bb
             pushd ~/rpmbuild/RPMS/${{ matrix.job.arch }}
-            for name in rustdesk*??.rpm; do
-                base="${name#rustdesk-}"
+            for name in easydeskview*??.rpm; do
+                base="${name#easydeskview-}"
                 mv "$name" /workspace/"easydeskview-${base%%.rpm}-suse.rpm"
             done
 
@@ -1625,8 +1625,8 @@ jobs:
       - name: Rename archlinux package
         if: matrix.job.arch == 'x86_64' && env.UPLOAD_ARTIFACT == 'true'
         run: |
-          for name in res/rustdesk-${{ env.VERSION }}*.zst; do
-            mv "$name" "${name/rustdesk-/easydeskview-}"
+          for name in res/easydeskview-${{ env.VERSION }}*.zst; do
+            mv "$name" "${name/easydeskview-/easydeskview-}"
           done
 
       - name: Publish archlinux package
@@ -1638,10 +1638,10 @@ jobs:
           files: |
             res/easydeskview-${{ env.VERSION }}*.zst
 
-  build-rustdesk-linux-sciter:
+  build-easydeskview-linux-sciter:
     if: ${{ inputs.upload-artifact }}
     runs-on: ${{ matrix.job.on }}
-    name: build-rustdesk-linux-sciter ${{ matrix.job.target }}
+    name: build-easydeskview-linux-sciter ${{ matrix.job.target }}
     strategy:
       fail-fast: false
       matrix:
@@ -1841,15 +1841,15 @@ jobs:
             (exit $s)
             # make debian package
             mkdir -p ./Release
-            mv ./target/release/rustdesk ./Release/rustdesk
+            mv ./target/release/easydeskview ./Release/easydeskview
             wget -O ./Release/libsciter-gtk.so https://github.com/c-smile/sciter-sdk/raw/master/bin.lnx/${{ matrix.job.sciter_arch }}/libsciter-gtk.so
             export DEB_ARCH=${{ matrix.job.deb_arch }}
             ./build.py --package ./Release
 
-      - name: Rename rustdesk
+      - name: Rename easydeskview
         shell: bash
         run: |
-          for name in rustdesk*??.deb; do
+          for name in easydeskview*??.deb; do
               # use cp to duplicate deb files to fit other packages.
               cp "$name" "easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}-sciter.deb"
           done
@@ -1872,7 +1872,7 @@ jobs:
 
   build-appimage:
     name: Build appimage ${{ matrix.job.target }}
-    needs: [build-rustdesk-linux]
+    needs: [build-easydeskview-linux]
     runs-on: ubuntu-22.04
     if: ${{ inputs.upload-artifact }}
     strategy:
@@ -1895,7 +1895,7 @@ jobs:
 
       - name: Rename Binary
         run: |
-          mv easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}.deb appimage/rustdesk.deb
+          mv easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}.deb appimage/easydeskview.deb
 
       - name: Build appimage package
         shell: bash
@@ -1910,8 +1910,8 @@ jobs:
           # run appimage-builder
           pushd appimage
           sudo appimage-builder --skip-tests --recipe ./AppImageBuilder-${{ matrix.job.arch }}.yml
-          for name in rustdesk-${{ env.VERSION }}-*.AppImage; do
-            mv "$name" "${name/rustdesk-/easydeskview-}"
+          for name in easydeskview-${{ env.VERSION }}-*.AppImage; do
+            mv "$name" "${name/easydeskview-/easydeskview-}"
           done
 
       - name: Publish appimage package
@@ -1926,8 +1926,8 @@ jobs:
   build-flatpak:
     name: Build flatpak ${{ matrix.job.target }}${{ matrix.job.suffix }}
     needs:
-      - build-rustdesk-linux
-      - build-rustdesk-linux-sciter
+      - build-easydeskview-linux
+      - build-easydeskview-linux-sciter
     runs-on: ${{ matrix.job.on }}
     if: ${{ inputs.upload-artifact }}
     strategy:
@@ -1971,7 +1971,7 @@ jobs:
 
       - name: Rename Binary
         run: |
-          mv easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.deb flatpak/rustdesk.deb
+          mv easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.deb flatpak/easydeskview.deb
 
       - uses: rustdesk-org/run-on-arch-action@amd64-support
         name: Build EasyDeskView flatpak package for ${{ matrix.job.arch }}
@@ -1998,7 +1998,7 @@ jobs:
             pushd flatpak
             git clone https://github.com/flathub/shared-modules.git --depth=1
             flatpak-builder --user --install-deps-from=flathub -y --force-clean --repo=repo ./build ./easydeskview.json
-            flatpak build-bundle ./repo easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.flatpak com.rustdesk.RustDesk
+            flatpak build-bundle ./repo easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.flatpak com.rustdesk.EasyDeskView
 
       - name: Publish flatpak package
         uses: softprops/action-gh-release@v1
@@ -2008,9 +2008,9 @@ jobs:
           files: |
             flatpak/easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.flatpak
 
-  build-rustdesk-web:
+  build-easydeskview-web:
     if: False
-    name: build-rustdesk-web
+    name: build-easydeskview-web
     runs-on: ubuntu-22.04
     permissions:
       contents: read

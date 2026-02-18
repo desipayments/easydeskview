@@ -1,16 +1,14 @@
 [package]
 name = "easydeskview"
 version = "1.4.5"
-authors = ["rustdesk <info@rustdesk.com>"]
 edition = "2021"
 build= "build.rs"
 description = "easydeskview Remote Desktop"
-default-run = "easydeskview"
 rust-version = "1.75"
 
 [lib]
-name = "librustdesk"
-crate-type = ["cdylib", "staticlib", "rlib"]
+name = "libeasydeskview"
+crate-type = ["staticlib", "cdylib"]
 
 [[bin]]
 name = "naming"

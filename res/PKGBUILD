@@ -2,9 +2,9 @@ pkgname=easydeskview
 pkgver=1.4.5
 pkgrel=0
 epoch=
-pkgdesc=""
+pkgdesc="A remote desktop software."
 arch=('x86_64')
-url=""
+url="https://easydesk.desipayments.com"
 license=('AGPL-3.0')
 groups=()
 depends=('gtk3' 'xdotool' 'libxcb' 'libxfixes' 'alsa-lib' 'libva' 'libappindicator-gtk3' 'pam' 'gst-plugins-base' 'gst-plugin-pipewire')
@@ -29,10 +29,6 @@ package() {
   pushd ${pkgdir}
   if [[ -f usr/share/easydeskview/easydeskview ]]; then
     ln -s /usr/share/easydeskview/easydeskview usr/bin/easydeskview
-    ln -s /usr/share/easydeskview/easydeskview usr/bin/rustdesk
-  else
-    ln -s /usr/share/easydeskview/rustdesk usr/bin/easydeskview
-    ln -s /usr/share/easydeskview/rustdesk usr/bin/rustdesk
   fi
   popd
   install -Dm 644 $HBB/res/easydeskview.service -t "${pkgdir}/usr/share/easydeskview/files"
