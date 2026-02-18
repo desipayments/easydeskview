@@ -52,7 +52,7 @@ jobs:
     uses: './.github/workflows/bridge.yml'
 
   build-EasyDeskViewTempTopMostWindow:
-    uses: './.github/workflows/third-party-EasyDeskViewTempTopMostWindow.yml'
+    uses: './.github/workflows/third-party-RustDeskTempTopMostWindow.yml'
     with:
       upload-artifact: ${{ inputs.upload-artifact }}
       target: windows-2022
@@ -108,7 +108,7 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       # https://github.com/flutter/flutter/issues/155685
-      - name: Replace engine with rustdesk custom flutter engine
+      - name: Replace engine with custom flutter engine
         run: |
           flutter doctor -v
           flutter precache --windows
@@ -506,7 +506,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          prefix-key: rustdesk-lib-cache-ios
+          prefix-key: easydeskview-lib-cache-ios
           key: ${{ matrix.job.target }}
 
       - name: Restore bridge files
@@ -593,7 +593,7 @@ jobs:
         with:
           p12-file-base64: ${{ secrets.MACOS_P12_BASE64 }}
           p12-password: ${{ secrets.MACOS_P12_PASSWORD }}
-          keychain: rustdesk
+          keychain: easydeskview
 
       - name: Check sign and import sign key
         if: env.MACOS_P12_BASE64 != null
@@ -745,15 +745,15 @@ jobs:
           # Unlock keychain
           security default-keychain -s easydeskview.keychain
           security unlock-keychain -p ${{ secrets.MACOS_P12_PASSWORD }} easydeskview.keychain
-          # start sign the rustdesk.app and dmg
+          # start sign the EasyDeskView.app and dmg
           rm -rf *.dmg || true
           codesign --force --options runtime -s ${{ secrets.MACOS_CODESIGN_IDENTITY }} --deep --strict ./flutter/build/macos/Build/Products/Release/EasyDeskView.app -vvv
           create-dmg --icon "EasyDeskView.app" 200 190 --hide-extension "EasyDeskView.app" --window-size 800 400 --app-drop-link 600 185 easydeskview-${{ env.VERSION }}.dmg ./flutter/build/macos/Build/Products/Release/EasyDeskView.app
           codesign --force --options runtime -s ${{ secrets.MACOS_CODESIGN_IDENTITY }} --deep --strict easydeskview-${{ env.VERSION }}.dmg -vvv
-          # notarize the rustdesk-${{ env.VERSION }}.dmg
+          # notarize the easydeskview-${{ env.VERSION }}.dmg
           rcodesign notary-submit --api-key-path ${{ github.workspace }}/easydeskview.json  --staple easydeskview-${{ env.VERSION }}.dmg
 
-      - name: Rename rustdesk
+      - name: Rename easydeskview
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
           for name in easydeskview*??.dmg; do
@@ -966,7 +966,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          prefix-key: rustdesk-lib-cache-android # TODO: drop '-android' part after caches are invalidated
+          prefix-key: easydeskview-lib-cache-android # TODO: drop '-android' part after caches are invalidated
           key: ${{ matrix.job.target }}
 
       - name: Build EasyDeskView lib
@@ -1998,7 +1998,7 @@ jobs:
             pushd flatpak
             git clone https://github.com/flathub/shared-modules.git --depth=1
             flatpak-builder --user --install-deps-from=flathub -y --force-clean --repo=repo ./build ./easydeskview.json
-            flatpak build-bundle ./repo easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.flatpak com.rustdesk.EasyDeskView
+            flatpak build-bundle ./repo easydeskview-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.flatpak com.desipayments.easydeskview
 
       - name: Publish flatpak package
         uses: softprops/action-gh-release@v1
