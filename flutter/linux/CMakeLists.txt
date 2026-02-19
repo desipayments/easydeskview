@@ -193,7 +193,7 @@ endif()
 
 message(STATUS "easydeskview lib build type: ${EASYDESKVIEW_LIB_BUILD_TYPE}")
 
-set(RUSTDESK_LIB "../../target/${EASYDESKVIEW_LIB_BUILD_TYPE}/libeasydeskview.so")
+set(RUSTDESK_LIB "../../target/${EASYDESKVIEW_LIB_BUILD_TYPE}/liblibeasydeskview.so")
 install(FILES "${RUSTDESK_LIB}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
 COMPONENT Runtime RENAME libeasydeskview.so)
 
