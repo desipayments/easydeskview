@@ -36,6 +36,7 @@ jobs:
     strategy:
         fail-fast: false
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       build_output_dir: RustDeskTempTopMostWindow/WindowInjection/${{ inputs.platform }}/${{ inputs.configuration }}
     steps:
       - name: Add MSBuild to PATH
