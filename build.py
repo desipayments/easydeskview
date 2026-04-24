@@ -51,6 +51,25 @@ def system2(cmd, retries=3, delay=5):
     sys.exit(-1)
 
 
+def mkdir_cross_platform(path):
+    """Create directory recursively in a cross-platform way."""
+    try:
+        os.makedirs(path, exist_ok=True)
+    except Exception as e:
+        print(f"Error creating directory {path}: {e}")
+        sys.exit(-1)
+
+
+def copy_file_cross_platform(src, dst):
+    """Copy file in a cross-platform way."""
+    try:
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy2(src, dst)
+    except Exception as e:
+        print(f"Error copying {src} to {dst}: {e}")
+        sys.exit(-1)
+
+
 def get_version():
     with open("Cargo.toml", encoding="utf-8") as fh:
         for line in fh:
@@ -323,10 +342,22 @@ def ffi_bindgen_function_refactor():
 
 def sync_flutter_assets():
     # Keep Flutter UI assets aligned with branded files under res/.
-    system2('mkdir -p flutter/assets')
-    system2('cp -f res/icon.png flutter/assets/icon.png')
-    system2('if [ -f res/icon.svg ]; then cp -f res/icon.svg flutter/assets/icon.svg; elif [ -f res/scalable.svg ]; then cp -f res/scalable.svg flutter/assets/icon.svg; fi')
-    system2('if [ -f res/logo.png ]; then cp -f res/logo.png flutter/assets/logo.png; else cp -f res/icon.png flutter/assets/logo.png; fi')
+    mkdir_cross_platform('flutter/assets')
+    
+    # Copy icon.png
+    copy_file_cross_platform('res/icon.png', 'flutter/assets/icon.png')
+    
+    # Copy icon.svg with fallback
+    if os.path.exists('res/icon.svg'):
+        copy_file_cross_platform('res/icon.svg', 'flutter/assets/icon.svg')
+    elif os.path.exists('res/scalable.svg'):
+        copy_file_cross_platform('res/scalable.svg', 'flutter/assets/icon.svg')
+    
+    # Copy logo with fallback
+    if os.path.exists('res/logo.png'):
+        copy_file_cross_platform('res/logo.png', 'flutter/assets/logo.png')
+    else:
+        copy_file_cross_platform('res/icon.png', 'flutter/assets/logo.png')
 
 
 def build_flutter_deb(version, features):
@@ -336,46 +367,74 @@ def build_flutter_deb(version, features):
     sync_flutter_assets()
     os.chdir('flutter')
     system2('flutter build linux --release')
-    system2('mkdir -p tmpdeb/usr/bin/')
-    system2('mkdir -p tmpdeb/usr/share/easydeskview')
-    system2('mkdir -p tmpdeb/etc/easydeskview/')
-    system2('mkdir -p tmpdeb/etc/pam.d/')
-    system2('mkdir -p tmpdeb/usr/share/easydeskview/files/systemd/')
-    system2('mkdir -p tmpdeb/usr/share/icons/hicolor/256x256/apps/')
-    system2('mkdir -p tmpdeb/usr/share/icons/hicolor/scalable/apps/')
-    system2('mkdir -p tmpdeb/usr/share/applications/')
-    system2('mkdir -p tmpdeb/usr/share/polkit-1/actions')
-    system2('rm tmpdeb/usr/bin/easydeskview || true')
-    system2(
-        f'cp -r {flutter_build_dir}/* tmpdeb/usr/share/easydeskview/')
-    system2('if [ -f tmpdeb/usr/share/easydeskview/easydeskview ]; then ln -sf /usr/share/easydeskview/easydeskview tmpdeb/usr/bin/easydeskview; fi')
-    system2(
-        'cp ../res/easydeskview.service tmpdeb/usr/share/easydeskview/files/systemd/easydeskview.service')
-    system2(
-        'cp ../res/128x128@2x.png tmpdeb/usr/share/icons/hicolor/256x256/apps/easydeskview.png')
-    system2(
-        'cp ../res/scalable.svg tmpdeb/usr/share/icons/hicolor/scalable/apps/easydeskview.svg')
-    system2(
-        'cp ../res/easydeskview.desktop tmpdeb/usr/share/applications/easydeskview.desktop')
-    system2(
-        'cp ../res/easydeskview-link.desktop tmpdeb/usr/share/applications/easydeskview-link.desktop')
-    system2(
-        'cp ../res/startwm.sh tmpdeb/etc/easydeskview/')
-    system2(
-        'cp ../res/xorg.conf tmpdeb/etc/easydeskview/')
-    system2(
-        'cp ../res/pam.d/easydeskview.debian tmpdeb/etc/pam.d/easydeskview')
-    system2(
-        "echo \"#!/bin/sh\" >> tmpdeb/usr/share/easydeskview/files/polkit && chmod a+x tmpdeb/usr/share/easydeskview/files/polkit")
+    mkdir_cross_platform('tmpdeb/usr/bin/')
+    mkdir_cross_platform('tmpdeb/usr/share/easydeskview')
+    mkdir_cross_platform('tmpdeb/etc/easydeskview/')
+    mkdir_cross_platform('tmpdeb/etc/pam.d/')
+    mkdir_cross_platform('tmpdeb/usr/share/easydeskview/files/systemd/')
+    mkdir_cross_platform('tmpdeb/usr/share/icons/hicolor/256x256/apps/')
+    mkdir_cross_platform('tmpdeb/usr/share/icons/hicolor/scalable/apps/')
+    mkdir_cross_platform('tmpdeb/usr/share/applications/')
+    mkdir_cross_platform('tmpdeb/usr/share/polkit-1/actions')
+    
+    # Remove old binary if exists
+    if os.path.exists('tmpdeb/usr/bin/easydeskview'):
+        os.remove('tmpdeb/usr/bin/easydeskview')
+    
+    # Copy flutter build directory
+    for root, dirs, files in os.walk(flutter_build_dir):
+        for file in files:
+            src_file = os.path.join(root, file)
+            rel_path = os.path.relpath(src_file, flutter_build_dir)
+            dst_file = os.path.join('tmpdeb/usr/share/easydeskview/', rel_path)
+            copy_file_cross_platform(src_file, dst_file)
+    
+    # Create symlink if executable exists
+    easydeskview_bin = os.path.join('tmpdeb/usr/share/easydeskview/easydeskview')
+    if os.path.exists(easydeskview_bin):
+        try:
+            os.symlink('/usr/share/easydeskview/easydeskview', 'tmpdeb/usr/bin/easydeskview')
+        except:
+            pass  # Symlink creation might fail on Windows
+    
+    copy_file_cross_platform('../res/easydeskview.service', 'tmpdeb/usr/share/easydeskview/files/systemd/easydeskview.service')
+    copy_file_cross_platform('../res/128x128@2x.png', 'tmpdeb/usr/share/icons/hicolor/256x256/apps/easydeskview.png')
+    copy_file_cross_platform('../res/scalable.svg', 'tmpdeb/usr/share/icons/hicolor/scalable/apps/easydeskview.svg')
+    copy_file_cross_platform('../res/easydeskview.desktop', 'tmpdeb/usr/share/applications/easydeskview.desktop')
+    copy_file_cross_platform('../res/easydeskview-link.desktop', 'tmpdeb/usr/share/applications/easydeskview-link.desktop')
+    copy_file_cross_platform('../res/startwm.sh', 'tmpdeb/etc/easydeskview/')
+    copy_file_cross_platform('../res/xorg.conf', 'tmpdeb/etc/easydeskview/')
+    copy_file_cross_platform('../res/pam.d/easydeskview.debian', 'tmpdeb/etc/pam.d/easydeskview')
+    
+    # Create polkit file
+    polkit_path = 'tmpdeb/usr/share/easydeskview/files/polkit'
+    mkdir_cross_platform(os.path.dirname(polkit_path))
+    with open(polkit_path, 'w') as f:
+        f.write('#!/bin/sh\n')
+    os.chmod(polkit_path, 0o755)
 
-    system2('mkdir -p tmpdeb/DEBIAN')
+    mkdir_cross_platform('tmpdeb/DEBIAN')
     generate_control_file(version)
-    system2('cp -a ../res/DEBIAN/* tmpdeb/DEBIAN/')
+    
+    # Copy DEBIAN directory
+    debian_src = '../res/DEBIAN'
+    debian_dst = 'tmpdeb/DEBIAN'
+    if os.path.exists(debian_src):
+        for item in os.listdir(debian_src):
+            src = os.path.join(debian_src, item)
+            dst = os.path.join(debian_dst, item)
+            if os.path.isfile(src):
+                copy_file_cross_platform(src, dst)
+            elif os.path.isdir(src):
+                shutil.copytree(src, dst, dirs_exist_ok=True)
+    
     md5_file_folder("tmpdeb/")
     system2('dpkg-deb -b tmpdeb easydeskview.deb;')
 
-    system2('/bin/rm -rf tmpdeb/')
-    system2('/bin/rm -rf ../res/DEBIAN/control')
+    # Remove temporary files
+    shutil.rmtree('tmpdeb/', ignore_errors=True)
+    if os.path.exists('../res/DEBIAN/control'):
+        os.remove('../res/DEBIAN/control')
     os.rename('easydeskview.deb', '../easydeskview-%s.deb' % version)
     os.chdir("..")
 
@@ -425,12 +484,17 @@ def build_flutter_dmg(version, features):
         system2(
             f'MACOSX_DEPLOYMENT_TARGET=10.14 cargo build --features {features} --release')
     # copy dylib
-    system2(
-        "cp target/release/liblibeasydeskview.dylib target/release/libeasydeskview.dylib")
+    copy_file_cross_platform("target/release/liblibeasydeskview.dylib", "target/release/libeasydeskview.dylib")
     sync_flutter_assets()
     os.chdir('flutter')
     system2('flutter build macos --release')
-    system2('cp -rf ../target/release/service ./build/macos/Build/Products/Release/EasyDeskView.app/Contents/MacOS/')
+    
+    # Copy service binary to app bundle
+    service_src = '../target/release/service'
+    service_dst = './build/macos/Build/Products/Release/EasyDeskView.app/Contents/MacOS/service'
+    if os.path.exists(service_src):
+        copy_file_cross_platform(service_src, service_dst)
+    
     '''
     system2(
         "create-dmg --volname \"EasyDeskView Installer\" --window-pos 200 120 --window-size 800 400 --icon-size 100 --app-drop-link 600 185 --icon EasyDeskView.app 200 190 --hide-extension EasyDeskView.app EasyDeskView.dmg ./build/macos/Build/Products/Release/EasyDeskView.app")
