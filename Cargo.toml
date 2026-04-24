@@ -7,7 +7,7 @@ description = "easydeskview Remote Desktop"
 rust-version = "1.75"
 
 [lib]
-name = "libeasydeskview"
+name = "easydeskview"
 crate-type = ["staticlib", "cdylib"]
 
 [[bin]]

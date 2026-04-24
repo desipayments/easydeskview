@@ -122,7 +122,7 @@ class PlatformFFI {
         : isLinux
             ? DynamicLibrary.open('libeasydeskview.so')
             : isWindows
-                ? DynamicLibrary.open('libeasydeskview.dll')
+                ? DynamicLibrary.open('easydeskview.dll')
                 :
                 // Use executable itself as the dynamic library for MacOS.
                 // Multiple dylib instances will cause some global instances to be invalid.
